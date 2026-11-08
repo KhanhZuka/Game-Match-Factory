@@ -4,6 +4,8 @@ public class ItemSpot : MonoBehaviour
 {
     [Header(" Settings ")]
     private Item item;
+    public Item Item => item;
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
