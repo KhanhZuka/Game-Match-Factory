@@ -16,6 +16,10 @@ public class ItemSpotsManager : MonoBehaviour
     [Header(" Data ")]
     private Dictionary<EItemName, ItemMergeData> itemMergeDataDictionary = new Dictionary<EItemName, ItemMergeData>();
 
+    [Header(" Animation Settings ")]
+    [SerializeField] private float animationDuration;
+    [SerializeField] private LeanTweenType animationEasing;
+
     private void Awake()
     {
         InputManager.itemClicked += OnItemClicked;
@@ -106,7 +110,7 @@ public class ItemSpotsManager : MonoBehaviour
             return;
         }
 
-        MoveItemToSpot(item, idealSpot, () => HandleFirstItemReachedSpot(item)); // neu vi tri ben phai trong thi di chuyen item vao
+        MoveItemToSpot(item, idealSpot, () => HandleItemReachedSpot(item)); // neu vi tri ben phai trong thi di chuyen item vao
     }
 
     private void MoveItemToSpot(Item item, ItemSpot targetSpot, Action completeCallback)
@@ -114,22 +118,30 @@ public class ItemSpotsManager : MonoBehaviour
         targetSpot.Populate(item);
 
         // 2. Scale the item down, set its local position 0,0,0
-        item.transform.localPosition = itemLocalPositionOnSpot;
-        item.transform.localScale = itemLocalScaleOnSpot;
-        item.transform.localRotation = Quaternion.identity;
+        //item.transform.localPosition = itemLocalPositionOnSpot;
+        //item.transform.localScale = itemLocalScaleOnSpot;
+        //item.transform.localRotation = Quaternion.identity;
+
+        LeanTween.moveLocal(item.gameObject, itemLocalPositionOnSpot, animationDuration)
+            .setEase(animationEasing);
+
+        LeanTween.scale(item.gameObject, itemLocalScaleOnSpot, animationDuration)
+            .setEase(animationEasing);
+
+        LeanTween.rotateLocal(item.gameObject, Vector3.zero, animationDuration)
+            .setOnComplete(completeCallback);
 
         // 3. Disable its shadow
         item.DisableShadows();
 
         // 4. Disable its collider / physics
         item.DisablePhysics();
-
-        completeCallback?.Invoke();
-        //HandleItemReachedSpot(item, checkForMerge);
     }
 
     private void HandleItemReachedSpot(Item item, bool checkForMerge = true)
     {
+        item.Spot.BumpDown();
+
         if (!checkForMerge) return;
 
         if (itemMergeDataDictionary[item.ItemName].CanMergeItems())
@@ -151,14 +163,19 @@ public class ItemSpotsManager : MonoBehaviour
             Destroy(items[i].gameObject);
         }
 
-        MoveAllItemToTheLeft();
+        if(itemMergeDataDictionary.Count <= 0)
+            isBusy = false;
+        else
+            MoveAllItemToTheLeft(HandleAllItemsMovedToTheLeft);
 
         // TODO: Remove this line after moving the items to the left
         //isBusy = false;
     }
 
-    private void MoveAllItemToTheLeft()
+    private void MoveAllItemToTheLeft(Action completeCallback)
     {
+        bool callbackTriggered = false;
+
         for (int i = 3; i < spots.Length; i++)
         {
             ItemSpot spot = spots[i];
@@ -179,10 +196,16 @@ public class ItemSpotsManager : MonoBehaviour
 
             spot.Clear();
 
-            MoveItemToSpot(item, targetSpot, ()=> HandleItemReachedSpot(item, false));
+            completeCallback += () => HandleItemReachedSpot(item, false);
+            MoveItemToSpot(item, targetSpot, completeCallback);
+
+            callbackTriggered = true;
         }
 
-        HandleAllItemsMovedToTheLeft();
+        if (!callbackTriggered)
+        {
+            completeCallback?.Invoke();
+        }
     }
 
     private void HandleAllItemsMovedToTheLeft()
@@ -238,27 +261,12 @@ public class ItemSpotsManager : MonoBehaviour
         CreateItemMergeData(item);
 
         MoveItemToSpot(item,targetSpot, () => HandleFirstItemReachedSpot(item));
-        /*
-        // 1. Turn the item as a child of item spot
-        targetSpot.Populate(item);
-
-        // 2. Scale the item down, set its local position 0,0,0
-        item.transform.localPosition = itemLocalPositionOnSpot;
-        item.transform.localScale = itemLocalScaleOnSpot;
-        item.transform.localRotation = Quaternion.identity;
-
-        // 3. Disable its shadow
-        item.DisableShadows();
-
-        // 4. Disable its collider / physics
-        item.DisablePhysics();
-
-        HandleFirstItemReachedSpot(item);
-        */
     }
 
     private void HandleFirstItemReachedSpot(Item item)
     {
+        item.Spot.BumpDown();
+
         CheckForGameover();
     }
 

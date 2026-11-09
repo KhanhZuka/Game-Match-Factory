@@ -2,21 +2,13 @@
 
 public class ItemSpot : MonoBehaviour
 {
+    [Header(" Elements ")]
+    [SerializeField] private Animator animator;
+    [SerializeField] private Transform itemParent;
+
     [Header(" Settings ")]
     private Item item;
     public Item Item => item;
-
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
 
     public void Populate(Item item) //điền vào
     {
@@ -29,6 +21,11 @@ public class ItemSpot : MonoBehaviour
     public void Clear()
     {
         this.item = null;
+    }
+
+    public void BumpDown()
+    {
+        animator.Play("Bump", 0, 0);
     }
 
     public bool IsEmpty() => item == null;
