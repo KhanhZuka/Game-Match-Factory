@@ -156,7 +156,7 @@ public class ItemSpotsManager : MonoBehaviour
         else
             MoveAllItemToTheLeft(HandleAllItemsMovedToTheLeft);
 
-        mergeStarted?.Invoke(items);
+        mergeStarted?.Invoke(items); //Thực thi hành động đã được gán cho mergeStarted
     }
 
     private void MoveAllItemToTheLeft(Action completeCallback)

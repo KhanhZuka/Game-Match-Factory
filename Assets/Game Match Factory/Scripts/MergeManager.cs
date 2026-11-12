@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -35,7 +35,7 @@ public class MergeManager : MonoBehaviour
             Action callback = null;
 
             if (i == 0)
-                callback = () => SmashItems(items);
+                callback = () => SmashItems(items); //Gán một hành động, chưa thực thi SmashItems().
 
             LeanTween.move(items[i].gameObject, targetPos, goUpDuration)
                 .setEase(goUpEasing)
